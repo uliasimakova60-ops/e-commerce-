@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Управление E-Commerce — Панель администратора</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    (function () {
+      var saved = localStorage.getItem("eshop-theme");
+      var theme = saved;
+      if (theme !== "light" && theme !== "dark" && theme !== "contrast") {
+        theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", theme);
+
+      var accent = localStorage.getItem("eshop-accent");
+      if (accent && /^#[0-9a-fA-F]{6}$/.test(accent)) {
+        var n = parseInt(accent.slice(1), 16);
+        var r = (n >> 16) & 255;
+        var g = (n >> 8) & 255;
+        var b = n & 255;
+        var root = document.documentElement;
+        root.style.setProperty("--color-accent", accent);
+        root.style.setProperty("--color-accent-rgb", r + ", " + g + ", " + b);
+        var hr = Math.max(0, r - 28);
+        var hg = Math.max(0, g - 28);
+        var hb = Math.max(0, b - 28);
+        root.style.setProperty("--color-accent-hover", "rgb(" + hr + ", " + hg + ", " + hb + ")");
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="dashboard-layout">
+    <header class="dashboard-header">
+      <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="sidebar" aria-label="Открыть меню">
+        <span class="menu-btn-box" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </button>
+      <div>
+        <p class="header-sub">Панель управления торговлей</p>
+        <h1 class="header-heading">Отчетные данные на 05 октября 2026 года</h1>
+      </div>
+      <div class="header-tools">
+        <div class="theme-switch" role="group" aria-label="Тема оформления">
+          <button class="theme-btn" type="button" data-theme-choice="light">Светлая</button>
+          <button class="theme-btn" type="button" data-theme-choice="dark">Тёмная</button>
+          <button class="theme-btn" type="button" data-theme-choice="contrast">Контраст</button>
+        </div>
+        <label class="accent-field">
+          Цвет
+          <input type="color" id="accent-picker" value="#1d4e89" aria-label="Акцентный цвет">
+        </label>
+      </div>
+    </header>
+
+    <div class="nav-overlay" id="nav-overlay" hidden></div>
+
+    <nav class="sidebar-nav" id="sidebar" aria-label="Разделы панели">
+      <div class="brand-logo">
+        <span class="brand-mark">ES</span>
+        <span class="brand-title">E-Shop Admin</span>
+      </div>
+      <ul class="nav-menu">
+        <li><a class="nav-item active" href="#orders">Заказы</a></li>
+        <li><a class="nav-item" href="#products">Товары</a></li>
+        <li><a class="nav-item" href="#returns">Возвраты</a></li>
+        <li><a class="nav-item" href="#stats">Аналитика</a></li>
+      </ul>
+    </nav>
+
+    <main class="dashboard-main">
+      <section class="stats-row" id="stats" aria-label="Сводка">
+        <article class="stat-card">
+          <p class="stat-label">Заказов</p>
+          <p class="stat-value" id="stat-orders">—</p>
+          <p class="stat-note">в реестре</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">Выручка</p>
+          <p class="stat-value" id="stat-revenue">—</p>
+          <p class="stat-note">без отменённых</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">Товаров</p>
+          <p class="stat-value" id="stat-products">—</p>
+          <p class="stat-note">в каталоге</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">Возвраты</p>
+          <p class="stat-value" id="stat-returns">—</p>
+          <p class="stat-note">открытых заявок</p>
+        </article>
+      </section>
+
+      <section class="content-block" id="orders">
+        <header class="block-header">
+          <h2 class="block-title">Реестр заказов клиентов</h2>
+          <p class="block-note">Список подтвержденных и обрабатываемых заказов интернет-магазина</p>
+        </header>
+
+        <form class="filter-panel" id="order-filters">
+          <div class="filter-field filter-field--grow">
+            <label for="order-search">Поиск по заказу</label>
+            <input type="search" id="order-search" placeholder="Номер, покупатель или товар">
+          </div>
+          <div class="filter-field">
+            <label for="order-status">Статус</label>
+            <select id="order-status">
+              <option value="">Все статусы</option>
+              <option value="Новый">Новый</option>
+              <option value="Обработка">Обработка</option>
+              <option value="В пути">В пути</option>
+              <option value="Доставлен">Доставлен</option>
+              <option value="Отменен">Отменен</option>
+            </select>
+          </div>
+          <fieldset class="filter-field">
+            <legend>Оплата</legend>
+            <div class="check-row">
+              <label class="check"><input type="checkbox" name="pay" value="Карта" checked><span>Карта</span></label>
+              <label class="check"><input type="checkbox" name="pay" value="СБП" checked><span>СБП</span></label>
+              <label class="check"><input type="checkbox" name="pay" value="Наличные" checked><span>Наличные</span></label>
+            </div>
+          </fieldset>
+          <fieldset class="filter-field">
+            <legend>Вид списка</legend>
+            <div class="radio-row">
+              <label class="radio"><input type="radio" name="view" value="table" checked><span>Таблица</span></label>
+              <label class="radio"><input type="radio" name="view" value="cards"><span>Карточки</span></label>
+            </div>
+          </fieldset>
+          <button class="btn btn--ghost" type="reset">Сбросить</button>
+        </form>
+
+        <p class="result-count" id="order-count">Показано: —</p>
+
+        <div class="table-wrap" id="orders-table-wrap">
+          <table class="data-table">
+            <caption class="table-caption">Заказы магазина: номер, дата, покупатель, состав, сумма и статус</caption>
+            <thead>
+              <tr>
+                <th aria-sort="none"><button class="sort-btn" type="button" data-sort="orderNumber">Номер <span class="sort-arrow"></span></button></th>
+                <th aria-sort="descending"><button class="sort-btn" type="button" data-sort="createdAt">Дата <span class="sort-arrow"></span></button></th>
+                <th aria-sort="none"><button class="sort-btn" type="button" data-sort="clientName">Покупатель <span class="sort-arrow"></span></button></th>
+                <th>Состав заказа</th>
+                <th aria-sort="none"><button class="sort-btn" type="button" data-sort="total">Сумма <span class="sort-arrow"></span></button></th>
+                <th aria-sort="none"><button class="sort-btn" type="button" data-sort="status">Статус <span class="sort-arrow"></span></button></th>
+              </tr>
+            </thead>
+            <tbody id="orders-table-body"></tbody>
+          </table>
+        </div>
+
+        <ul class="order-cards" id="orders-cards" hidden></ul>
+        <p class="empty-note" id="orders-empty" hidden>Ничего не найдено. Попробуйте сбросить фильтры.</p>
+      </section>
+
+      <section class="content-block" id="products">
+        <header class="block-header">
+          <h2 class="block-title">Каталог и складские остатки</h2>
+          <p class="block-note">Карточка товара: код, название, статус, описание и ответственный по складу</p>
+        </header>
+        <ul class="cards-grid" id="products-list"></ul>
+      </section>
+    </main>
+
+    <aside class="extra-panel" id="returns">
+      <header class="extra-header">
+        <h2 class="extra-title">Заявки на возврат</h2>
+        <p class="block-note">Нажмите на заявку, чтобы открыть карточку</p>
+      </header>
+      <div class="returns-stack" id="returns-list"></div>
+    </aside>
+
+    <footer class="dashboard-footer">
+      <address class="footer-info">
+        Служба поддержки: <a href="/cdn-cgi/l/email-protection#dcafa9acacb3aea89cb9afb4b3acf2b0b3bfbdb0"><span class="__cf_email__" data-cfemail="7a090f0a0a15080e3a1f0912150a541615191b16">[email&#160;protected]</span></a>
+        | Отдел логистики: <a href="tel:+72286666967">+7 (228) 666-69-67</a>
+      </address>
+      <p>© 2026 E-Shop Control System.</p>
+    </footer>
+  </div>
+
+  <div class="modal" id="detail-modal" hidden>
+    <div class="modal-backdrop" data-close="true"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
+      <header class="modal-header">
+        <h2 class="modal-title" id="modal-title">Карточка</h2>
+        <button class="icon-btn" id="modal-close" type="button" aria-label="Закрыть">×</button>
+      </header>
+      <div class="modal-body" id="modal-body"></div>
+      <footer class="modal-footer">
+        <button class="btn btn--ghost" type="button" data-close="true">Закрыть</button>
+        <button class="btn btn--primary" type="button" id="modal-work">В работу</button>
+      </footer>
+    </div>
+  </div>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="script.js"></script>
+</body>
+</html>
